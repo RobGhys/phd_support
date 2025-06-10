@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: white;
+            padding: 20px;
+        }
+        #container {
+            background-color: white;
+            padding: 20px;
+        }
+        svg {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <svg id="network" width="1000" height="550" xmlns="http://www.w3.org/2000/svg">
+            <!-- Define markers and gradients -->
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+                </marker>
+                <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0, 8 3, 0 6" fill="#2196F3"/>
+                </marker>
+            </defs>
+        </svg>
+    </div>
+
+    <script>
+        const svg = document.getElementById('network');
+        
+        // Network architecture with ACTUAL COMPUTED values from 2x2 image
+        const layers = [
+            { 
+                name: 'Input Layer\n(2×2 Pixels)', 
+                neurons: [0.1, 0.9, 0.8, 0.2],
+                x: 150,
+                color: '#4CAF50'
+            },
+            { 
+                name: 'Hidden Layer 1\n(ReLU)', 
+                neurons: [0.120, 0.300, 0.0, 0.910, 0.0, 0.180],
+                x: 350,
+                color: '#2196F3'
+            },
+            { 
+                name: 'Hidden Layer 2\n(ReLU)', 
+                neurons: [0.103, 0.439, 0.372, 0.085, 0.0],
+                x: 550,
+                color: '#FF9800'
+            },
+            { 
+                name: 'Output Layer\n(Softmax)', 
+                neurons: [0.350, 0.325, 0.325],
+                x: 750,
+                color: '#F44336',
+                labels: ['Cat: 35.0%', 'Dog: 32.5%', 'Bird: 32.5%']
+            }
+        ];
+        
+        const neuronRadius = 18;
+        const yCenter = 300;
+        
+        // Calculate neuron positions
+        layers.forEach(layer => {
+            const totalHeight = (layer.neurons.length - 1) * 70;
+            const startY = yCenter - totalHeight / 2;
+            layer.positions = layer.neurons.map((val, i) => ({
+                x: layer.x,
+                y: startY + i * 70,
+                value: val
+            }));
+        });
+        
+        // Draw connections
+        for (let l = 0; l < layers.length - 1; l++) {
+            const currentLayer = layers[l];
+            const nextLayer = layers[l + 1];
+            
+            currentLayer.positions.forEach((neuron1, i) => {
+                nextLayer.positions.forEach((neuron2, j) => {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', neuron1.x + neuronRadius);
+                    line.setAttribute('y1', neuron1.y);
+                    line.setAttribute('x2', neuron2.x - neuronRadius);
+                    line.setAttribute('y2', neuron2.y);
+                    line.setAttribute('stroke', '#ddd');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('opacity', '0.5');
+                    svg.appendChild(line);
+                });
+            });
+        }
+        
+        // Draw neurons with values
+        layers.forEach((layer, layerIndex) => {
+            layer.positions.forEach((pos, neuronIndex) => {
+                // Neuron circle
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', pos.x);
+                circle.setAttribute('cy', pos.y);
+                circle.setAttribute('r', neuronRadius);
+                circle.setAttribute('fill', layer.color);
+                circle.setAttribute('stroke', '#333');
+                circle.setAttribute('stroke-width', '2');
+                circle.setAttribute('opacity', Math.max(0.4, pos.value));
+                svg.appendChild(circle);
+                
+                // Value text inside neuron
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', pos.x);
+                text.setAttribute('y', pos.y + 5);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('fill', 'white');
+                text.textContent = pos.value.toFixed(2);
+                svg.appendChild(text);
+                
+                // Output labels
+                if (layer.labels && layer.labels[neuronIndex]) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', pos.x + 50);
+                    label.setAttribute('y', pos.y + 5);
+                    label.setAttribute('font-size', '14');
+                    label.setAttribute('font-weight', 'bold');
+                    label.setAttribute('fill', layer.color);
+                    label.textContent = layer.labels[neuronIndex];
+                    svg.appendChild(label);
+                }
+            });
+        });
+        
+        // Add layer labels
+        layers.forEach((layer) => {
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', layer.x);
+            text.setAttribute('y', 80);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('font-size', '14');
+            text.setAttribute('font-weight', 'bold');
+            
+            const lines = layer.name.split('\n');
+            lines.forEach((line, lineIndex) => {
+                const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                tspan.textContent = line;
+                tspan.setAttribute('x', layer.x);
+                tspan.setAttribute('dy', lineIndex === 0 ? 0 : '18');
+                text.appendChild(tspan);
+            });
+            
+            svg.appendChild(text);
+        });
+        
+        // Add input image representation
+        const imgGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        // Image rectangle
+        const imgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        imgRect.setAttribute('x', 30);
+        imgRect.setAttribute('y', 270);
+        imgRect.setAttribute('width', 60);
+        imgRect.setAttribute('height', 60);
+        imgRect.setAttribute('fill', '#f0f0f0');
+        imgRect.setAttribute('stroke', '#666');
+        imgRect.setAttribute('stroke-width', '2');
+        imgGroup.appendChild(imgRect);
+        
+        // Pixel grid to represent 2x2 image with actual values
+        const pixelValues = [[0.1, 0.9], [0.8, 0.2]];
+        for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 2; j++) {
+                const pixel = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                pixel.setAttribute('x', 40 + j * 25);
+                pixel.setAttribute('y', 280 + i * 25);
+                pixel.setAttribute('width', 20);
+                pixel.setAttribute('height', 20);
+                const grayValue = Math.floor(pixelValues[i][j] * 255);
+                pixel.setAttribute('fill', `rgb(${grayValue},${grayValue},${grayValue})`);
+                pixel.setAttribute('stroke', '#333');
+                pixel.setAttribute('stroke-width', '1');
+                imgGroup.appendChild(pixel);
+                
+                // Add value labels on pixels
+                const valueText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                valueText.textContent = pixelValues[i][j].toFixed(1);
+                valueText.setAttribute('x', 50 + j * 25);
+                valueText.setAttribute('y', 295 + i * 25);
+                valueText.setAttribute('text-anchor', 'middle');
+                valueText.setAttribute('font-size', '10');
+                valueText.setAttribute('font-weight', 'bold');
+                valueText.setAttribute('fill', pixelValues[i][j] > 0.5 ? 'black' : 'white');
+                imgGroup.appendChild(valueText);
+            }
+        }
+        
+        svg.appendChild(imgGroup);
+        
+        // Label for input
+        const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        xLabel.textContent = '2×2 Image';
+        xLabel.setAttribute('x', 60);
+        xLabel.setAttribute('y', 355);
+        xLabel.setAttribute('text-anchor', 'middle');
+        xLabel.setAttribute('font-size', '12');
+        xLabel.setAttribute('font-weight', 'bold');
+        svg.appendChild(xLabel);
+        
+        // Arrow from X to input layer
+        const inputArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        inputArrow.setAttribute('d', 'M 90 300 L 125 300');
+        inputArrow.setAttribute('stroke', '#333');
+        inputArrow.setAttribute('stroke-width', '2');
+        inputArrow.setAttribute('marker-end', 'url(#arrowhead)');
+        svg.appendChild(inputArrow);
+        
+        // Add activation function arrows and labels
+        const activationLabels = ['ReLU', 'ReLU', 'Softmax'];
+        for (let i = 0; i < layers.length - 1; i++) {
+            const x1 = layers[i].x + 30;
+            const x2 = layers[i + 1].x - 30;
+            const y = 150;
+            
+            // Arrow
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrow.setAttribute('d', `M ${x1} ${y} L ${x2} ${y}`);
+            arrow.setAttribute('stroke', '#2196F3');
+            arrow.setAttribute('stroke-width', '2');
+            arrow.setAttribute('marker-end', 'url(#arrowhead-blue)');
+            svg.appendChild(arrow);
+            
+            // Label
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.textContent = activationLabels[i];
+            label.setAttribute('x', (x1 + x2) / 2);
+            label.setAttribute('y', y - 10);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('font-size', '13');
+            label.setAttribute('fill', '#2196F3');
+            label.setAttribute('font-weight', 'bold');
+            svg.appendChild(label);
+        }
+        
+        // Add sum notation for output
+        const sumText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        sumText.textContent = 'Σ = 100%';
+        sumText.setAttribute('x', layers[3].x);
+        sumText.setAttribute('y', 420);
+        sumText.setAttribute('text-anchor', 'middle');
+        sumText.setAttribute('font-size', '14');
+        sumText.setAttribute('font-weight', 'bold');
+        sumText.setAttribute('fill', '#4CAF50');
+        svg.appendChild(sumText);
+        
+        // Title
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        title.setAttribute('x', 500);
+        title.setAttribute('y', 40);
+        title.setAttribute('text-anchor', 'middle');
+        title.setAttribute('font-size', '20');
+        title.setAttribute('font-weight', 'bold');
+        svg.appendChild(title);
+    </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backpropagation Visualization</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            font-size: 18px;
+            margin: 30px 0 20px 0;
+        }
+        svg {
+            display: block;
+            margin: 0 auto;
+            background: white;
+        }
+        .math-text {
+            font-style: italic;
+        }
+        .forward-flow {
+            stroke: #3498db;
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#forward-arrow);
+        }
+        .backward-flow {
+            stroke: #e74c3c;
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#backward-arrow);
+        }
+        .computation-box {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .equation {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg width="1000" height="600" id="backprop-network">
+            <defs>
+                <marker id="forward-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#3498db"/>
+                </marker>
+                <marker id="backward-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#e74c3c"/>
+                </marker>
+            </defs>
+        </svg>
+
+    </div>
+
+    <script>
+        function drawBackpropagationNetwork() {
+            const svg = document.getElementById('backprop-network');
+            const width = 1000;
+            const height = 600;
+
+            // Network structure
+            const layers = [
+                { name: 'Input\nx ∈ ℝ³', neurons: 3, x: 100 },
+                { name: 'Hidden\na⁽¹⁾ ∈ ℝ⁴', neurons: 4, x: 300 },
+                { name: 'Output\nŷ ∈ ℝ²', neurons: 2, x: 500 },
+                { name: 'Loss\nL', neurons: 1, x: 700 }
+            ];
+
+            const neuronRadius = 20;
+            const yCenter = 300;
+
+            // Calculate neuron positions
+            layers.forEach(layer => {
+                layer.positions = [];
+                const totalHeight = (layer.neurons - 1) * 80;
+                const startY = yCenter - totalHeight / 2;
+                
+                for (let i = 0; i < layer.neurons; i++) {
+                    layer.positions.push({
+                        x: layer.x,
+                        y: startY + i * 80
+                    });
+                }
+            });
+
+            // Draw connections with forward flow
+            for (let l = 0; l < layers.length - 1; l++) {
+                const currentLayer = layers[l];
+                const nextLayer = layers[l + 1];
+                
+                currentLayer.positions.forEach((pos1, i) => {
+                    nextLayer.positions.forEach((pos2, j) => {
+                        // Forward connections (blue)
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', pos1.x + neuronRadius);
+                        line.setAttribute('y1', pos1.y);
+                        line.setAttribute('x2', pos2.x - neuronRadius);
+                        line.setAttribute('y2', pos2.y);
+                        line.setAttribute('stroke', '#3498db');
+                        line.setAttribute('stroke-width', '1');
+                        line.setAttribute('opacity', '0.3');
+                        svg.appendChild(line);
+                    });
+                });
+            }
+
+            // Draw neurons
+            layers.forEach((layer, layerIdx) => {
+                layer.positions.forEach((pos, neuronIdx) => {
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    
+                    // Neuron circle
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', pos.x);
+                    circle.setAttribute('cy', pos.y);
+                    circle.setAttribute('r', neuronRadius);
+                    circle.setAttribute('fill', layerIdx === 3 ? '#f39c12' : '#ecf0f1');
+                    circle.setAttribute('stroke', '#34495e');
+                    circle.setAttribute('stroke-width', '2');
+                    g.appendChild(circle);
+                    
+                    // Neuron label
+                    if (layerIdx < 3) {
+                        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        text.textContent = layerIdx === 0 ? `x${neuronIdx+1}` : 
+                                          layerIdx === 1 ? `h${neuronIdx+1}` : `y${neuronIdx+1}`;
+                        text.setAttribute('x', pos.x);
+                        text.setAttribute('y', pos.y + 5);
+                        text.setAttribute('text-anchor', 'middle');
+                        text.setAttribute('font-size', '14');
+                        text.setAttribute('font-weight', 'bold');
+                        g.appendChild(text);
+                    } else {
+                        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        text.textContent = 'L';
+                        text.setAttribute('x', pos.x);
+                        text.setAttribute('y', pos.y + 5);
+                        text.setAttribute('text-anchor', 'middle');
+                        text.setAttribute('font-size', '16');
+                        text.setAttribute('font-weight', 'bold');
+                        g.appendChild(text);
+                    }
+                    
+                    svg.appendChild(g);
+                });
+            });
+
+            // Draw layer labels
+            layers.forEach((layer, idx) => {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                const lines = layer.name.split('\n');
+                lines.forEach((line, lineIdx) => {
+                    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                    tspan.textContent = line;
+                    tspan.setAttribute('x', layer.x);
+                    tspan.setAttribute('y', 80 + lineIdx * 20);
+                    tspan.setAttribute('text-anchor', 'middle');
+                    tspan.setAttribute('font-size', '14');
+                    tspan.setAttribute('font-weight', lineIdx === 0 ? 'bold' : 'normal');
+                    tspan.setAttribute('font-style', lineIdx === 1 ? 'italic' : 'normal');
+                    text.appendChild(tspan);
+                });
+                svg.appendChild(text);
+            });
+
+            // Draw forward pass arrows
+            const forwardY = 450;
+            for (let i = 0; i < layers.length - 1; i++) {
+                const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                arrow.setAttribute('d', `M ${layers[i].x + 30} ${forwardY} L ${layers[i+1].x - 30} ${forwardY}`);
+                arrow.setAttribute('class', 'forward-flow');
+                svg.appendChild(arrow);
+                
+                // Add operation labels
+                if (i === 0) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.textContent = 'W⁽¹⁾x + b⁽¹⁾';
+                    label.setAttribute('x', (layers[i].x + layers[i+1].x) / 2);
+                    label.setAttribute('y', forwardY - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('font-size', '12');
+                    label.setAttribute('font-style', 'italic');
+                    svg.appendChild(label);
+                } else if (i === 1) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.textContent = 'W⁽²⁾a⁽¹⁾ + b⁽²⁾';
+                    label.setAttribute('x', (layers[i].x + layers[i+1].x) / 2);
+                    label.setAttribute('y', forwardY - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('font-size', '12');
+                    label.setAttribute('font-style', 'italic');
+                    svg.appendChild(label);
+                } else if (i === 2) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.textContent = 'L = loss(ŷ, y)';
+                    label.setAttribute('x', (layers[i].x + layers[i+1].x) / 2);
+                    label.setAttribute('y', forwardY - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('font-size', '12');
+                    label.setAttribute('font-style', 'italic');
+                    svg.appendChild(label);
+                }
+            }
+
+            // Draw backward pass arrows
+            const backwardY = 520;
+            for (let i = layers.length - 1; i > 0; i--) {
+                const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                arrow.setAttribute('d', `M ${layers[i].x - 30} ${backwardY} L ${layers[i-1].x + 30} ${backwardY}`);
+                arrow.setAttribute('class', 'backward-flow');
+                svg.appendChild(arrow);
+                
+                // Add gradient labels
+                if (i === 3) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.textContent = '∂L/∂ŷ';
+                    label.setAttribute('x', (layers[i].x + layers[i-1].x) / 2);
+                    label.setAttribute('y', backwardY - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('font-size', '12');
+                    label.setAttribute('font-style', 'italic');
+                    label.setAttribute('fill', '#e74c3c');
+                    svg.appendChild(label);
+                } else if (i === 2) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.textContent = 'δ⁽²⁾ = ∂L/∂z⁽²⁾';
+                    label.setAttribute('x', (layers[i].x + layers[i-1].x) / 2);
+                    label.setAttribute('y', backwardY - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('font-size', '12');
+                    label.setAttribute('font-style', 'italic');
+                    label.setAttribute('fill', '#e74c3c');
+                    svg.appendChild(label);
+                } else if (i === 1) {
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.textContent = 'δ⁽¹⁾ = (W⁽²⁾)ᵀδ⁽²⁾ ⊙ σ\'(z⁽¹⁾)';
+                    label.setAttribute('x', (layers[i].x + layers[i-1].x) / 2);
+                    label.setAttribute('y', backwardY - 10);
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('font-size', '12');
+                    label.setAttribute('font-style', 'italic');
+                    label.setAttribute('fill', '#e74c3c');
+                    svg.appendChild(label);
+                }
+            }
+        }
+
+        drawBackpropagationNetwork();
+    </script>
+</body>
+</html>

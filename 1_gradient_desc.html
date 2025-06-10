@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        svg {
+            display: block;
+            margin: 0 auto;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg width="600" height="600" id="gradient-field">
+            <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="2" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,4 L4,2 z" fill="#666"/>
+                </marker>
+                <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L5,3 z" fill="#e74c3c"/>
+                </marker>
+            </defs>
+        </svg>
+    </div>
+
+    <script>
+        function drawGradientField() {
+            const svg = document.getElementById('gradient-field');
+            const width = 600;
+            const height = 600;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 100;
+
+            // Simple quadratic loss function: J(x,y) = x² + 2y²
+            function gradient(x, y) {
+                return { x: 2 * x, y: 4 * y };
+            }
+
+            // Draw axes
+            const axes = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            axes.innerHTML = `
+                <line x1="50" y1="${centerY}" x2="${width-50}" y2="${centerY}" stroke="#ccc" stroke-width="2"/>
+                <line x1="${centerX}" y1="50" x2="${centerX}" y2="${height-50}" stroke="#ccc" stroke-width="2"/>
+                <text x="${width-60}" y="${centerY-10}" font-size="16" font-style="italic">θ₁</text>
+                <text x="${centerX+10}" y="60" font-size="16" font-style="italic">θ₂</text>
+            `;
+            svg.appendChild(axes);
+
+            // Draw simple contour ellipses
+            const contours = [0.5, 1, 1.5, 2, 2.5];
+            contours.forEach((level, i) => {
+                const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+                ellipse.setAttribute('cx', centerX);
+                ellipse.setAttribute('cy', centerY);
+                ellipse.setAttribute('rx', Math.sqrt(level) * scale);
+                ellipse.setAttribute('ry', Math.sqrt(level/2) * scale);
+                ellipse.setAttribute('fill', 'none');
+                ellipse.setAttribute('stroke', '#3498db');
+                ellipse.setAttribute('stroke-width', '1.5');
+                ellipse.setAttribute('opacity', 0.3 + i * 0.1);
+                svg.appendChild(ellipse);
+            });
+
+            // Draw gradient vectors (fewer, larger, clearer)
+            const gridSize = 60;
+            const arrowLength = 25;
+            
+            for (let i = gridSize; i < width - gridSize; i += gridSize) {
+                for (let j = gridSize; j < height - gridSize; j += gridSize) {
+                    // Convert to mathematical coordinates
+                    const x = (i - centerX) / scale;
+                    const y = -(j - centerY) / scale;
+                    
+                    // Skip if too far from origin
+                    if (x*x + y*y > 4) continue;
+                    
+                    // Calculate gradient
+                    const grad = gradient(x, y);
+                    const magnitude = Math.sqrt(grad.x * grad.x + grad.y * grad.y);
+                    
+                    if (magnitude > 0.1) {
+                        // Normalize and scale
+                        const normalizedX = -grad.x / magnitude;
+                        const normalizedY = -grad.y / magnitude;
+                        
+                        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        arrow.setAttribute('x1', i);
+                        arrow.setAttribute('y1', j);
+                        arrow.setAttribute('x2', i + normalizedX * arrowLength);
+                        arrow.setAttribute('y2', j - normalizedY * arrowLength);
+                        arrow.setAttribute('stroke', '#666');
+                        arrow.setAttribute('stroke-width', '2');
+                        arrow.setAttribute('marker-end', 'url(#arrow)');
+                        svg.appendChild(arrow);
+                    }
+                }
+            }
+
+            // Draw gradient descent path
+            const path = [];
+            let x = -1.8;
+            let y = 1.5;
+            const learningRate = 0.15;
+            
+            for (let step = 0; step < 20; step++) {
+                path.push({ 
+                    x: centerX + x * scale, 
+                    y: centerY - y * scale 
+                });
+                
+                const grad = gradient(x, y);
+                x -= learningRate * grad.x;
+                y -= learningRate * grad.y;
+                
+                if (Math.abs(x) < 0.01 && Math.abs(y) < 0.01) break;
+            }
+
+            // Draw path
+            const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathEl.setAttribute('d', `M ${path.map(p => `${p.x},${p.y}`).join(' L ')}`);
+            pathEl.setAttribute('fill', 'none');
+            pathEl.setAttribute('stroke', '#e74c3c');
+            pathEl.setAttribute('stroke-width', '3');
+            svg.appendChild(pathEl);
+
+            // Draw points on path
+            path.forEach((point, i) => {
+                if (i % 2 === 0 || i === 0 || i === path.length - 1) {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', point.x);
+                    circle.setAttribute('cy', point.y);
+                    circle.setAttribute('r', '5');
+                    circle.setAttribute('fill', '#e74c3c');
+                    svg.appendChild(circle);
+                }
+            });
+
+            // Labels
+            const startLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            startLabel.textContent = 'θ⁽⁰⁾';
+            startLabel.setAttribute('x', path[0].x - 25);
+            startLabel.setAttribute('y', path[0].y - 10);
+            startLabel.setAttribute('font-size', '18');
+            startLabel.setAttribute('font-weight', 'bold');
+            svg.appendChild(startLabel);
+
+            const minLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            minLabel.textContent = 'θ*';
+            minLabel.setAttribute('x', centerX - 10);
+            minLabel.setAttribute('y', centerY + 25);
+            minLabel.setAttribute('font-size', '18');
+            minLabel.setAttribute('font-weight', 'bold');
+            svg.appendChild(minLabel);
+
+            // Add function label
+            const funcLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            funcLabel.textContent = 'J(θ) = θ₁² + 2θ₂²';
+            funcLabel.setAttribute('x', 50);
+            funcLabel.setAttribute('y', 30);
+            funcLabel.setAttribute('font-size', '16');
+            funcLabel.setAttribute('font-style', 'italic');
+            svg.appendChild(funcLabel);
+
+            // Simple legend
+            const legend = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            legend.innerHTML = `
+                <text x="420" y="550" font-size="14">→ Negative gradient (-∇J)</text>
+                <text x="420" y="570" font-size="14" fill="#e74c3c">— Descent path</text>
+            `;
+            svg.appendChild(legend);
+        }
+
+        drawGradientField();
+    </script>
+</body>
+</html>
