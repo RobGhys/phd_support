@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotation Invariance</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            background: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            max-width: 900px;
+        }
+
+        .figure-title {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: normal;
+        }
+
+        .diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .input-group, .output-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .arrow-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            height: 200px;
+            padding: 0 40px;
+        }
+
+        .arrow {
+            stroke: #666;
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+
+        .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .network-box {
+            width: 120px;
+            height: 200px;
+            border: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f9f9f9;
+        }
+
+        .network-label {
+            font-size: 14px;
+            color: #333;
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+        }
+
+        .output-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            width: 80px;
+            height: 80px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .equals {
+            font-size: 24px;
+            color: #666;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="figure-title">Rotation Invariance: Φ(T<sub>g</sub>x) = Φ(x) for all g ∈ SO(2)</div>
+
+        <div class="diagram">
+            <div class="input-group">
+                <div>
+                    <canvas id="input1" width="80" height="80"></canvas>
+                    <div class="label">x</div>
+                </div>
+                <div>
+                    <canvas id="input2" width="80" height="80"></canvas>
+                    <div class="label">T<sub>g</sub>x</div>
+                </div>
+            </div>
+
+            <div class="arrow-container">
+                <svg width="100" height="40">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                         refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+                        </marker>
+                    </defs>
+                    <line class="arrow" x1="0" y1="20" x2="80" y2="20"/>
+                </svg>
+                <svg width="100" height="40">
+                    <line class="arrow" x1="0" y1="20" x2="80" y2="20"/>
+                </svg>
+            </div>
+
+            <div class="network-box">
+                <div class="network-label">Invariant<br/>Network<br/>Φ</div>
+            </div>
+
+            <div class="arrow-container">
+                <svg width="100" height="40">
+                    <line class="arrow" x1="0" y1="20" x2="80" y2="20"/>
+                </svg>
+                <svg width="100" height="40">
+                    <line class="arrow" x1="0" y1="20" x2="80" y2="20"/>
+                </svg>
+            </div>
+
+            <div class="output-group">
+                <div>
+                    <div class="output-value">0.92</div>
+                    <div class="label">Φ(x)</div>
+                </div>
+                <div>
+                    <div class="output-value">0.92</div>
+                    <div class="label">Φ(T<sub>g</sub>x)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Draw simple geometric pattern on first canvas
+        function drawPattern(canvasId, rotation = 0) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+
+            // Draw a simple L-shaped pattern
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-15, -15);
+            ctx.lineTo(-15, 10);
+            ctx.lineTo(10, 10);
+            ctx.stroke();
+
+            // Add a small circle for asymmetry
+            ctx.beginPath();
+            ctx.arc(10, -10, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Draw original pattern
+        drawPattern('input1', 0);
+
+        // Draw rotated pattern (45 degrees)
+        drawPattern('input2', Math.PI / 4);
+    </script>
+</body>
+</html>

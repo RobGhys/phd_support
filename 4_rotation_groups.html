@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symmetry Groups</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            background: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            max-width: 1100px;
+        }
+
+        .figure-title {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 40px;
+            color: #333;
+            font-weight: normal;
+        }
+
+        .groups-container {
+            display: flex;
+            justify-content: space-around;
+            gap: 50px;
+        }
+
+        .group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .group-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .group-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .symmetries {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .symmetries.c8 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .symmetries.d4-rotations {
+            grid-template-columns: repeat(4, 1fr);
+            margin-bottom: 15px;
+        }
+
+        .symmetries.d4-reflections {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .symmetry-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            border: 1px solid #ddd;
+            background: white;
+        }
+
+        .label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .reflection-separator {
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin: 10px 0 5px 0;
+            font-style: italic;
+        }
+
+        .group-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="figure-title">Discrete Rotation and Reflection Groups for E(2)-CNN</div>
+
+        <div class="groups-container">
+            <!-- C4 Group -->
+            <div class="group">
+                <div class="group-box">
+                    <div class="group-title">C<sub>4</sub></div>
+                    <div class="group-subtitle">Cyclic group<br/>4 rotations</div>
+                    <div class="symmetries">
+                        <div class="symmetry-item">
+                            <canvas id="c4-0" width="50" height="50"></canvas>
+                            <div class="label">0°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c4-90" width="50" height="50"></canvas>
+                            <div class="label">90°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c4-180" width="50" height="50"></canvas>
+                            <div class="label">180°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c4-270" width="50" height="50"></canvas>
+                            <div class="label">270°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- C8 Group -->
+            <div class="group">
+                <div class="group-box">
+                    <div class="group-title">C<sub>8</sub></div>
+                    <div class="group-subtitle">Cyclic group<br/>8 rotations</div>
+                    <div class="symmetries c8">
+                        <div class="symmetry-item">
+                            <canvas id="c8-0" width="50" height="50"></canvas>
+                            <div class="label">0°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-45" width="50" height="50"></canvas>
+                            <div class="label">45°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-90" width="50" height="50"></canvas>
+                            <div class="label">90°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-135" width="50" height="50"></canvas>
+                            <div class="label">135°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-180" width="50" height="50"></canvas>
+                            <div class="label">180°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-225" width="50" height="50"></canvas>
+                            <div class="label">225°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-270" width="50" height="50"></canvas>
+                            <div class="label">270°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="c8-315" width="50" height="50"></canvas>
+                            <div class="label">315°</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- D4 Group -->
+            <div class="group">
+                <div class="group-box">
+                    <div class="group-title">D<sub>4</sub></div>
+                    <div class="group-subtitle">Dihedral group<br/>4 rotations + 4 reflections</div>
+                    <div class="symmetries d4-rotations">
+                        <div class="symmetry-item">
+                            <canvas id="d4-0" width="50" height="50"></canvas>
+                            <div class="label">0°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="d4-90" width="50" height="50"></canvas>
+                            <div class="label">90°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="d4-180" width="50" height="50"></canvas>
+                            <div class="label">180°</div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="d4-270" width="50" height="50"></canvas>
+                            <div class="label">270°</div>
+                        </div>
+                    </div>
+                    <div class="reflection-separator">+ reflections</div>
+                    <div class="symmetries d4-reflections">
+                        <div class="symmetry-item">
+                            <canvas id="d4-v" width="50" height="50"></canvas>
+                            <div class="label">σ<sub>v</sub></div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="d4-h" width="50" height="50"></canvas>
+                            <div class="label">σ<sub>h</sub></div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="d4-d1" width="50" height="50"></canvas>
+                            <div class="label">σ<sub>d1</sub></div>
+                        </div>
+                        <div class="symmetry-item">
+                            <canvas id="d4-d2" width="50" height="50"></canvas>
+                            <div class="label">σ<sub>d2</sub></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Draw F-shaped pattern to clearly show rotations and reflections
+        function drawF(ctx, centerX, centerY, size, rotation = 0, flipH = false, flipV = false) {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotation);
+            if (flipH) ctx.scale(-1, 1);
+            if (flipV) ctx.scale(1, -1);
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = '#333';
+
+            // Draw F shape
+            ctx.beginPath();
+            // Vertical line
+            ctx.moveTo(-size/2, -size);
+            ctx.lineTo(-size/2, size);
+            // Top horizontal
+            ctx.moveTo(-size/2, -size);
+            ctx.lineTo(size/2, -size);
+            // Middle horizontal (shorter)
+            ctx.moveTo(-size/2, 0);
+            ctx.lineTo(size/4, 0);
+            ctx.stroke();
+
+            // Add a small circle to make orientation clearer
+            ctx.beginPath();
+            ctx.arc(size/2, -size, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // C4 group - 90° rotations
+        const c4Angles = [0, 90, 180, 270];
+        c4Angles.forEach((angle, i) => {
+            const canvas = document.getElementById(`c4-${angle}`);
+            const ctx = canvas.getContext('2d');
+            drawF(ctx, 25, 25, 12, (angle * Math.PI) / 180);
+        });
+
+        // C8 group - 45° rotations
+        const c8Angles = [0, 45, 90, 135, 180, 225, 270, 315];
+        c8Angles.forEach((angle, i) => {
+            const canvas = document.getElementById(`c8-${angle}`);
+            const ctx = canvas.getContext('2d');
+            drawF(ctx, 25, 25, 12, (angle * Math.PI) / 180);
+        });
+
+        // D4 group - rotations
+        const d4Rotations = [0, 90, 180, 270];
+        d4Rotations.forEach((angle, i) => {
+            const canvas = document.getElementById(`d4-${angle}`);
+            const ctx = canvas.getContext('2d');
+            drawF(ctx, 25, 25, 12, (angle * Math.PI) / 180);
+        });
+
+        // D4 group - reflections
+        // Vertical reflection (flip horizontal)
+        const canvasV = document.getElementById('d4-v');
+        const ctxV = canvasV.getContext('2d');
+        drawF(ctxV, 25, 25, 12, 0, true, false);
+
+        // Horizontal reflection (flip vertical)
+        const canvasH = document.getElementById('d4-h');
+        const ctxH = canvasH.getContext('2d');
+        drawF(ctxH, 25, 25, 12, 0, false, true);
+
+        // Diagonal reflection 1 (flip along main diagonal)
+        const canvasD1 = document.getElementById('d4-d1');
+        const ctxD1 = canvasD1.getContext('2d');
+        drawF(ctxD1, 25, 25, 12, Math.PI/2, true, false);
+
+        // Diagonal reflection 2 (flip along anti-diagonal)
+        const canvasD2 = document.getElementById('d4-d2');
+        const ctxD2 = canvasD2.getContext('2d');
+        drawF(ctxD2, 25, 25, 12, -Math.PI/2, true, false);
+    </script>
+</body>
+</html>

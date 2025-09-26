@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNN Hierarchical Feature Extraction</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+        .architecture {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        .layer {
+            text-align: center;
+            position: relative;
+        }
+        .layer-box {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .layer-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .input-layer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 140px;
+            height: 140px;
+        }
+        .conv-layer-1 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .conv-layer-2 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .conv-layer-3 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .fc-layer {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
+        .layer-content {
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .layer-name {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .layer-details {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+        .arrow {
+            position: absolute;
+            top: 50%;
+            width: 40px;
+            height: 2px;
+            background: #999;
+            transform: translateY(-50%);
+        }
+        .arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #999;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+        .feature-visualization {
+            margin-top: 40px;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .feature-stage {
+            text-align: center;
+        }
+        .feature-examples {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .feature-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        .feature-box:hover {
+            transform: scale(1.1);
+        }
+        .edge-feature {
+            background: #e0e0e0;
+            border: 2px solid #666;
+        }
+        .texture-feature {
+            background: repeating-linear-gradient(
+                45deg,
+                #606dbc,
+                #606dbc 10px,
+                #465298 10px,
+                #465298 20px
+            );
+        }
+        .part-feature {
+            background: #ffab91;
+            border-radius: 50%;
+        }
+        .object-feature {
+            background: #81c784;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        }
+        .stage-label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+        }
+        .receptive-field {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .rf-visualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .rf-box {
+            border: 2px dashed #999;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+        }
+        .rf-small {
+            width: 40px;
+            height: 40px;
+        }
+        .rf-medium {
+            width: 80px;
+            height: 80px;
+        }
+        .rf-large {
+            width: 120px;
+            height: 120px;
+        }
+        .math-formula {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="feature-visualization">
+            <div class="features-grid">
+                <div class="feature-stage">
+                    <h4 style="color: #f5576c;">Layer 1</h4>
+                    <div class="feature-examples">
+                        <div class="feature-box edge-feature" style="transform: rotate(0deg);">|</div>
+                        <div class="feature-box edge-feature" style="transform: rotate(90deg);">—</div>
+                        <div class="feature-box edge-feature" style="transform: rotate(45deg);">/</div>
+                        <div class="feature-box edge-feature" style="transform: rotate(-45deg);">\</div>
+                    </div>
+                    <div class="stage-label">Edges & Gradients</div>
+                </div>
+                
+                <div class="feature-stage">
+                    <h4 style="color: #00f2fe;">Layer 2</h4>
+                    <div class="feature-examples">
+                        <div class="feature-box texture-feature"></div>
+                        <div class="feature-box" style="background: repeating-radial-gradient(circle, #ff6b6b, #ff6b6b 5px, #ee5a24 5px, #ee5a24 10px);"></div>
+                        <div class="feature-box" style="background: repeating-linear-gradient(0deg, #4834d4, #4834d4 5px, #686de0 5px, #686de0 10px);"></div>
+                        <div class="feature-box" style="background: conic-gradient(#f9ca24, #f0932b, #eb4d4b, #6ab04c, #f9ca24);"></div>
+                    </div>
+                    <div class="stage-label">Textures & Patterns</div>
+                </div>
+                
+                <div class="feature-stage">
+                    <h4 style="color: #fee140;">Layer 3</h4>
+                    <div class="feature-examples">
+                        <div class="feature-box part-feature">👁</div>
+                        <div class="feature-box part-feature" style="background: #90caf9;">👃</div>
+                        <div class="feature-box part-feature" style="background: #ce93d8;">🦷</div>
+                        <div class="feature-box part-feature" style="background: #a5d6a7;">👂</div>
+                    </div>
+                    <div class="stage-label">Object Parts</div>
+                </div>
+                
+                <div class="feature-stage">
+                    <h4 style="color: #330867;">Layer 4</h4>
+                    <div class="feature-examples">
+                        <div class="feature-box object-feature">😊</div>
+                        <div class="feature-box" style="background: #ffcc80; border-radius: 8px;">🐕</div>
+                        <div class="feature-box" style="background: #b0bec5; border-radius: 8px;">🚗</div>
+                        <div class="feature-box" style="background: #bcaaa4; border-radius: 8px;">🏠</div>
+                    </div>
+                    <div class="stage-label">Whole Objects</div>
+                </div>
+                
+                <div class="feature-stage">
+                    <h4 style="color: #764ba2;">Output</h4>
+                    <div class="feature-examples" style="grid-template-columns: 1fr;">
+                        <div class="feature-box" style="width: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 14px;">Class</div>
+                    </div>
+                    <div class="stage-label">Classification</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add interactive tooltips on hover
+        document.querySelectorAll('.layer-box').forEach(box => {
+            box.addEventListener('mouseenter', function() {
+                this.style.cursor = 'pointer';
+            });
+            
+            box.addEventListener('click', function() {
+                const layerName = this.parentElement.querySelector('.layer-name').textContent;
+                const details = this.querySelector('.layer-content').textContent;
+                console.log(`Layer: ${layerName}, Shape: ${details}`);
+            });
+        });
+    </script>
+</body>
+</html>

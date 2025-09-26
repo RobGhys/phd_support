@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pooling Operations Visualization</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 1000px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .pooling-demo {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            gap: 60px;
+        }
+        .pooling-type {
+            text-align: center;
+        }
+        h3 {
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .grid-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: inline-grid;
+            gap: 2px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            position: relative;
+        }
+        .cell {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        .input-cell {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+        }
+        .output-cell {
+            background: #e8f5e9;
+            border: 1px solid #81c784;
+        }
+        .computed {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+        .active-region {
+            background: #ffecb3;
+            border: 2px solid #ffa726;
+        }
+        .max-value {
+            background: #ff5722;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .avg-contributing {
+            background: #673ab7;
+            color: white;
+        }
+        .active-output {
+            background: #388e3c;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        #input-grid-max, #input-grid-avg {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        #output-grid-max, #output-grid-avg {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .arrow {
+            font-size: 24px;
+            color: #666;
+        }
+        .formula-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            text-align: center;
+        }
+        .stride-info {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .region-indicator {
+            position: absolute;
+            border: 3px solid #ff5722;
+            border-radius: 3px;
+            pointer-events: none;
+        }
+        .calculation-details {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .highlight-box {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 0 2px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .max-highlight {
+            background: #ff5722;
+            color: white;
+        }
+        .avg-highlight {
+            background: #673ab7;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="pooling-demo">
+            <div class="pooling-type">
+                <h3>Max Pooling</h3>
+                <div class="grid-wrapper">
+                    <div>
+                        <div class="grid" id="input-grid-max">
+                            <!-- Row 0 -->
+                            <div class="cell input-cell">12</div>
+                            <div class="cell input-cell">20</div>
+                            <div class="cell input-cell active-region">30</div>
+                            <div class="cell input-cell active-region">0</div>
+                            <!-- Row 1 -->
+                            <div class="cell input-cell">8</div>
+                            <div class="cell input-cell">12</div>
+                            <div class="cell input-cell active-region">2</div>
+                            <div class="cell input-cell active-region">0</div>
+                            <!-- Row 2 -->
+                            <div class="cell input-cell">34</div>
+                            <div class="cell input-cell">70</div>
+                            <div class="cell input-cell">37</div>
+                            <div class="cell input-cell">4</div>
+                            <!-- Row 3 -->
+                            <div class="cell input-cell">112</div>
+                            <div class="cell input-cell">100</div>
+                            <div class="cell input-cell">25</div>
+                            <div class="cell input-cell">12</div>
+                            <div class="region-indicator" style="top: 10px; left: 87px; width: 78px; height: 78px;"></div>
+                        </div>
+                        <div class="stride-info">Input: 4×4</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div>
+                        <div class="grid" id="output-grid-max">
+                            <div class="cell output-cell computed">20</div>
+                            <div class="cell output-cell active-output">30</div>
+                            <div class="cell output-cell computed">112</div>
+                            <div class="cell output-cell">37</div>
+                        </div>
+                        <div class="stride-info">Output: 2×2</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pooling-type">
+                <h3>Average Pooling</h3>
+                <div class="grid-wrapper">
+                    <div>
+                        <div class="grid" id="input-grid-avg">
+                            <!-- Row 0 -->
+                            <div class="cell input-cell">12</div>
+                            <div class="cell input-cell">20</div>
+                            <div class="cell input-cell avg-contributing">30</div>
+                            <div class="cell input-cell avg-contributing">0</div>
+                            <!-- Row 1 -->
+                            <div class="cell input-cell">8</div>
+                            <div class="cell input-cell">12</div>
+                            <div class="cell input-cell avg-contributing">2</div>
+                            <div class="cell input-cell avg-contributing">0</div>
+                            <!-- Row 2 -->
+                            <div class="cell input-cell">34</div>
+                            <div class="cell input-cell">70</div>
+                            <div class="cell input-cell">37</div>
+                            <div class="cell input-cell">4</div>
+                            <!-- Row 3 -->
+                            <div class="cell input-cell">112</div>
+                            <div class="cell input-cell">100</div>
+                            <div class="cell input-cell">25</div>
+                            <div class="cell input-cell">12</div>
+                            <div class="region-indicator" style="top: 10px; left: 87px; width: 78px; height: 78px;"></div>
+                        </div>
+                        <div class="stride-info">Input: 4×4</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div>
+                        <div class="grid" id="output-grid-avg">
+                            <div class="cell output-cell computed">13</div>
+                            <div class="cell output-cell active-output">8</div>
+                            <div class="cell output-cell computed">79</div>
+                            <div class="cell output-cell">20</div>
+                        </div>
+                        <div class="stride-info">Output: 2×2</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</body>
+</html>
